@@ -1,0 +1,224 @@
+#1. Importing the required libraries for EDA
+#Below are the libraries that are used in order to perform EDA (Exploratory data analysis) 
+#code
+#Importing required libraries.
+import pandas as pd
+import numpy as np
+import seaborn as sns #visualisation
+import matplotlib.pyplot as plt #visualisation
+%matplotlib inline 
+sns.set(color_codes=True)
+
+#2. Loading the data into the data frame.
+#Loading the data into the pandas data frame is certainly one of the most important steps in EDA, as we can see that the value from the data set is comma-separated. So all we have to do is to just read the CSV into a data frame and pandas data frame does the job for us.
+
+import pandas 
+triplets_file = 'https://static.turi.com/datasets/millionsong/10000.txt'
+songs_metadata_file = 'https://static.turi.com/datasets/millionsong/song_data.csv'
+
+song_df_1 = pandas.read_table(triplets_file,header=None)
+song_df_1.columns = ['user_id', 'song_id', 'listen_count']
+
+#3. Checking the types of data. 
+#In our dataset we have song percentage year and listen_count as integers and rest as objects.
+
+song_df.dtypes
+song_grouped.dtypes
+
+#4. Dropping irrelevant columns
+#This step is certainly needed in every EDA because sometimes there would be many columns that we never use in such cases dropping is the only solution. Fortunately our dataset doesn’t have any irrelevant columns.
+#
+#5. Renaming the columns
+#In this instance, most of the column names are very confusing to read, so we just tweaked their column names. This is a good approach it improves the readability of the data set
+
+song_df = song_df.rename(columns={"title": "song"})
+
+#6. Dropping the duplicate rows
+#This is often a handy thing to do because a huge data set as in this case contains more than 10, 000 rows often have some duplicate data which might be disturbing, so here  we  remove all the duplicate value from the data-set. While combining the datasets duplicate rows  were removed.
+#code
+song_df_2 =  pandas.read_csv(songs_metadata_file)
+song_df = pandas.merge(song_df_1, song_df_2.drop_duplicates(['song_id']), on="song_id", how="left")
+
+#7. Dropping the missing or null values.
+#This is mostly similar to the previous step but in here all the missing values are detected and are dropped later. Now, this is not a good approach to do so, because many people just replace the missing values with the mean or the average of that column. Luckily again our dataset doesn’t have any null values.
+
+#8. Detecting Outliers
+#An outlier is a point or set of points that are different from other points. Sometimes they can be very high or very low. It’s often a good idea to detect and remove the outliers. Because outliers are one of the primary reasons for resulting in a less accurate model. Hence it’s a good idea to remove them. The outlier detection and removing that I am going to perform is called IQR score technique. Often outliers can be seen with visualizations using a box plot.. Herein all the plots, you can find some points are outside the box they are none other than outliers.
+#Detecting Outlier. 
+sns.boxplot(x=song_grouped['listen_count'])
+sns.boxplot(x=song_grouped['percentage'])
+
+
+#Collaborative Filtering:
+
+#CODE:
+#Class for Popularity based Recommender System model
+class popularity_recommender_py():    
+    def _init_(self):        
+        self.train_data = None        
+        self.user_id = None        
+        self.item_id = None        
+        self.popularity_recommendations = None            
+        #Create the popularity based recommender system model    
+    def create(self, train_data, user_id, item_id): 
+        self.train_data = train_data
+        self.user_id = user_id        
+        self.item_id = item_id         
+        
+        #Get a count of user_ids for each unique song as   recommendation score
+        train_data_grouped = train_data.groupby([self.item_id]).agg({self.user_id: 'count'}).reset_index()        
+        train_data_grouped.rename(columns = {'user_id': 'score'},inplace=True)            
+        #Sort the songs based upon recommendation score
+        train_data_sort = train_data_grouped.sort_values(['score', self.item_id], ascending = [0,1])            
+        #Generate a recommendation rank based upon score
+        train_data_sort['Rank'] = train_data_sort['score'].rank(ascending=0, method='first')
+        #Get the top 10 recommendations
+        self.popularity_recommendations = train_data_sort.head(10)     
+        #Use the popularity based recommender system model to    
+        #make recommendations    
+    def recommend(self, user_id):            
+        user_recommendations = self.popularity_recommendations                 
+        #Add user_id column for which the recommendations are being generated        
+        user_recommendations['user_id'] = user_id            
+        #Bring user_id column to the front        
+        cols = user_recommendations.columns.tolist()        
+        cols = cols[-1:] + cols[:-1]        
+        user_recommendations = user_recommendations[cols]
+        return user_recommendations
+#Class for Popularity based Recommender System model
+class popularity_recommender_py():    
+    def _init_(self):        
+        self.train_data = None        
+        self.user_id = None        
+        self.item_id = None        
+        self.popularity_recommendations = None            
+        #Create the popularity based recommender system model    
+    def create(self, train_data, user_id, item_id): 
+        self.train_data = train_data
+        self.user_id = user_id        
+        self.item_id = item_id         
+        
+        #Get a count of user_ids for each unique song as   recommendation score
+        train_data_grouped = train_data.groupby([self.item_id]).agg({self.user_id: 'count'}).reset_index()        
+        train_data_grouped.rename(columns = {'user_id': 'score'},inplace=True)            
+        #Sort the songs based upon recommendation score
+        train_data_sort = train_data_grouped.sort_values(['score', self.item_id], ascending = [0,1])            
+        #Generate a recommendation rank based upon score
+        train_data_sort['Rank'] = train_data_sort['score'].rank(ascending=0, method='first')
+        #Get the top 10 recommendations
+        self.popularity_recommendations = train_data_sort.head(10)     
+        #Use the popularity based recommender system model to    
+        #make recommendations    
+    def recommend(self, user_id):            
+        user_recommendations = self.popularity_recommendations                 
+        #Add user_id column for which the recommendations are being generated        
+        user_recommendations['user_id'] = user_id            
+        #Bring user_id column to the front        
+        cols = user_recommendations.columns.tolist()        
+        cols = cols[-1:] + cols[:-1]        
+        user_recommendations = user_recommendations[cols]
+        return user_recommendations
+#Object of above class
+pm = popularity_recommender_py()
+pm.create(train_data, 'user_id', 'song')
+#user the popularity model to make some prediction
+user_id = users[5]
+pm.recommend(user_id)
+
+
+
+#Content based Recommendation System:
+
+
+#CODE:
+#Class for Item similarity based Recommender System Model
+class item_similarity_recommender_py():
+    def _init_(self):
+        self.train_data=None
+        self.user_id=None
+        self.item_id=None
+        self.concurrence_matrix=None
+        self.songs_dict=None
+        self.rev_songs_dict=None
+        self.item_similarity_recommendations=None
+    #Get unique items (songs) corresponding to a given user
+    def get_user_items(self,user):
+        user_data = self.train_data[self.train_data[self.user_id] == user]
+        user_items = list(user_data[self.item_id].unique())
+        
+        return user_items
+    #GEt unique items (songs) corresponding to a given user
+    def get_item_users(self,item):
+        item_data = self.train_data[self.train_data[self.item_id] == item]
+        item_users = set(item_data[self.user_id].unique())
+        
+        return item_users
+    #Get unique users for a given item(song)
+    def create(self, train_data, user_id, item_id): 
+        self.train_data = train_data
+        self.user_id = user_id        
+        self.item_id = item_id         
+        
+        #Get a count of user_ids for each unique song as   recommendation score
+        train_data_grouped = train_data.groupby([self.item_id]).agg({self.user_id: 'count'}).reset_index()        
+        train_data_grouped.rename(columns = {'user_id': 'score'},inplace=True)            
+        #Sort the songs based upon recommendation score
+        train_data_sort = train_data_grouped.sort_values(['score', self.item_id], ascending = [0,1])            
+        #Generate a recommendation rank based upon score
+        train_data_sort['Rank'] = train_data_sort['score'].rank(ascending=0, method='first')
+        #Get the top 10 recommendations
+        self.popularity_recommendations = train_data_sort.head(10)     
+        #Use the popularity based recommender system model to    
+        #make recommendations    
+    def recommend(self, user_id):            
+        user_recommendations = self.popularity_recommendations                 
+        #Add user_id column for which the recommendations are being generated        
+        user_recommendations['user_id'] = user_id            
+        #Bring user_id column to the front        
+        cols = user_recommendations.columns.tolist()        
+        cols = cols[-1:] + cols[:-1]        
+        user_recommendations = user_recommendations[cols]
+        return user_recommendations
+is_model = item_similarity_recommender_py()
+is_model.create(train_data, 'user_id', 'song')
+#Print the songs for the user in training data
+user_id = users[5]
+user_items = is_model.get_user_items(user_id)
+#
+print("------------------------------------------------------------------------------------")
+print("Training data songs for the user userid: %s:" % user_id)
+print("------------------------------------------------------------------------------------")
+
+for user_item in user_items:
+    print(user_item)
+
+print("----------------------------------------------------------------------")
+print("Recommendation process going on:")
+print("----------------------------------------------------------------------")
+
+#Recommend songs for the user using personalized model
+is_model.recommend(user_id)
+
+
+#to plot precision recall curve:
+
+import pylab as pl
+
+#Method to generate precision and recall curve
+def plot_precision_recall(m1_precision_list, m1_recall_list, m1_label, m2_precision_list, m2_recall_list, m2_label):
+    pl.clf()    
+    pl.plot(m1_recall_list, m1_precision_list, label=m1_label)
+    pl.plot(m2_recall_list, m2_precision_list, label=m2_label)
+    pl.xlabel('Recall')
+    pl.ylabel('Precision')
+    pl.ylim([0.0, 0.20])
+    pl.xlim([0.0, 0.20])
+    pl.title('Precision-Recall curve')
+    #pl.legend(loc="upper right")
+    pl.legend(loc=9, bbox_to_anchor=(0.5, -0.2))
+    pl.show()
+print("Plotting precision recall curves.")
+
+plot_precision_recall(pm_avg_precision_list, pm_avg_recall_list, "popularity_model",
+                      ism_avg_precision_list, ism_avg_recall_list, "item_similarity_model")
+
